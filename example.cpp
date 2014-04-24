@@ -120,12 +120,15 @@ int main(int argc, char* argv[])
 		server<> serv(port);
 		client cli(std::cout, addr, port);
 
+		std::cout << "Run server" << std::endl;
 		boost::shared_ptr<boost::thread> th(new boost::thread([&serv] () { serv.run(); }));
 
 		cli.run_test();
 
 		// stop server
 		std::raise(SIGINT);
+
+		std::cout << "Stop server" << std::endl;
 
 		th->join();
 	}
@@ -155,20 +158,20 @@ void client::run_test()
 
 void client::thread_func(unsigned n)
 {
-	session s(address_, port_);
+	session sess(address_, port_);
 
 	std::size_t message_sizes[] = { 0, 1, 3, 7, 234, 6432, 23221, 3311, 34, 4521, 333 };
 
-	for (auto i : message_sizes)
+	for (auto s : message_sizes)
 	{
-		std::vector<uint8_t> mess(i, 'x');
+		std::vector<uint8_t> mess(s, 'x');
 
 		try
 		{
 			const std::size_t cnt = 1024 * 10;
 
-			for (auto i = 0; i < cnt; ++i)
-				s.echo(mess);
+			for (std::size_t i = 0; i < cnt; ++i)
+				sess.echo(mess);
 
 			ostream_ << "#" << n << ": " << cnt << " echos (size " << mess.size() << " bytes) received" << std::endl;
 		}
